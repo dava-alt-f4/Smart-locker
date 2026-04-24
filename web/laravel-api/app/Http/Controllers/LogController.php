@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class LogController extends Controller
 {
+
+    public function index()
+    {
+        $logs = Log::with(['student', 'locker'])
+            ->latest()
+            ->paginate(25);
+
+        return view('admin.index', compact('logs'));
+    }
+
     /**
      * Store locker access log.
      *
