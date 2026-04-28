@@ -15,22 +15,32 @@ class RfidCardController extends Controller
      */
     public function check(Request $request)
     {
-        $rfid = RfidCard::where('rfid_uid', $request->rfid_uid)->first();
-
-        // validate
         $request->validate([
-            'rfid_uid' => 'required|string'
+            'rfid_uid' => 'required',
+            'locker_id' => 'required|exists:lockers,id'
         ]);
 
+        $rfid = RfidCard::where('rfid_uid', $request->rfid_uid)->first();
+
         if (!$rfid) {
+            return response()->json(['status' => 'invalid']);
+        }
+
+        $student = $rfid->student;
+        
+        if (!$student || !$student->locker) {
+            return response()->json(['status' => 'no_locker']);
+        }
+
+        if ($student->locker->id != $request->locker_id) {
             return response()->json([
-                'status' => 'invalid'
+                'status' => 'wrong_locker'
             ]);
         }
 
         return response()->json([
             'status' => 'valid',
-            'student_id' => $rfid->student_id
+            'student_id' => $student->id
         ]);
     }
 }
