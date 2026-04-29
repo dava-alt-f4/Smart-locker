@@ -40,7 +40,7 @@ def recognize_face(student_id):
         print("❌ Kamera tidak bisa dibuka")
         return False
 
-    match_count = 0
+    total_match = 0
     while True:
         if time.time() - start_time > timeout:
             print("Wajah tidak cocok ❌")
@@ -64,20 +64,27 @@ def recognize_face(student_id):
         face_encodings = face_recognition.face_encodings(rgb, face_locations)
 
 
+        total_match = 0
+
         for face_encoding in face_encodings:
-            matches = face_recognition.compare_faces(known_encodings, face_encoding)
+            distances = face_recognition.face_distance(known_encodings, face_encoding)
 
-            if True in matches:
-                match_count += 1
+            if len(distances) == 0:
+                continue
 
-        if match_count >= 3:
-            print("Wajah cocok ✅")
-            cv2.imshow("Face Recognition", frame)
-            cv2.waitKey(1000)
+            min_distance = min(distances)
 
-            cap.release()
-            cv2.destroyAllWindows()
-            return True
+            if min_distance < 0.45:
+                total_match += 1
+
+            if total_match >= 1:
+                print("Wajah cocok ✅")
+                cv2.imshow("Face Recognition", frame)
+                cv2.waitKey(1000)
+
+                cap.release()
+                cv2.destroyAllWindows()
+                return True
 
         cv2.imshow("Face Recognition", frame)
 
