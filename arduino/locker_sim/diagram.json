@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "author": "Dupan Smart Locker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 0, "left": 0 },
+
+    { "type": "wokwi-rc522", "id": "rfid", "top": 50, "left": 200 },
+
+    { "type": "wokwi-led", "id": "led_hijau", "top": 120, "left": 200, "attrs": { "color": "green" } },
+    { "type": "wokwi-led", "id": "led_merah", "top": 120, "left": 260, "attrs": { "color": "red" } },
+
+    { "type": "wokwi-resistor", "id": "r1", "top": 160, "left": 200, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 160, "left": 260, "attrs": { "value": "220" } }
+  ],
+
+  "connections": [
+    ["rfid:SDA", "uno:10"],
+    ["rfid:SCK", "uno:13"],
+    ["rfid:MOSI", "uno:11"],
+    ["rfid:MISO", "uno:12"],
+    ["rfid:RST", "uno:9"],
+    ["rfid:3.3V", "uno:3.3V"],
+    ["rfid:GND", "uno:GND"],
+
+    ["led_hijau:A", "uno:6"],
+    ["led_hijau:C", "r1:1"],
+    ["r1:2", "uno:GND"],
+
+    ["led_merah:A", "uno:7"],
+    ["led_merah:C", "r2:1"],
+    ["r2:2", "uno:GND"]
+  ]
+}

@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Log extends Model
 {
+    protected $fillable = [
+        'student_id',
+        'locker_id',
+        'rfid_uid',
+        'status'
+    ];
     public function student()
     {
         return $this->belongsTo(Student::class);

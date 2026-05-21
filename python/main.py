@@ -1,5 +1,6 @@
 import requests
 from face.recognize import recognize_face
+import serial
 
 BASE_URL = "http://127.0.0.1:8000/api"
 
@@ -32,46 +33,57 @@ def log_access(student_id, locker_id, rfid_uid, status):
 
 
 def main():
-    data = input("Dari Arduino (UID,LOCKER): ")
-    rfid_uid, locker_id = data.split(",")
-    locker_id = int(locker_id)
+    ser = serial.Serial('COM3', 9600, timeout=1)
 
-    # 1. RFID check
-    rfid_res = check_rfid(rfid_uid, locker_id)
-    status = rfid_res["status"]
+    while True:
+        if ser.in_waiting:
+            data = ser.readline().decode().strip()
 
-    if status == "invalid":
-        print("❌ RFID tidak terdaftar")
-        print("KIRIM KE ARDUINO: DENIED")
-        return
+            if not data:
+                continue
 
-    elif status == "no_locker":
-        print("❌ Siswa belum punya loker")
-        print("KIRIM KE ARDUINO: DENIED")
-        return
+            print("DARI ARDUINO:", data)
 
-    elif status == "wrong_locker":
-        print("❌ RFID bukan milik loker ini")
-        print("KIRIM KE ARDUINO: DENIED")
-        return
+            try:
+                rfid_uid, locker_id = data.split(",")
+                locker_id = int(locker_id)
+            except:
+                print("Format salah")
+                continue
+            
+            
+            # =========================
+            # 1. RFID CHECK
+            # =========================
+            rfid_res = check_rfid(rfid_uid, locker_id)
+            status = rfid_res["status"]
 
-    student_id = rfid_res["student_id"]
+            if status != "valid":
+                print("RFID gagal:", status)
+                ser.write(b"FAIL\n")
+                continue
 
-    # 2. Face verify
-    face_res = verify_face(student_id, locker_id)
+            student_id = rfid_res["student_id"]
 
-    if face_res["status"] != "verified":
-        print("❌ Wajah tidak cocok")
-        print("KIRIM KE ARDUINO: DENIED")
+            # =========================
+            # 2. FACE VERIFY
+            # =========================
+            face_res = verify_face(student_id, locker_id)
 
-        log_access(student_id, locker_id, rfid_uid, "failed")
-        return
+            if face_res["status"] != "verified":
+                print("Wajah tidak cocok")
+                ser.write(b"FAIL\n")
 
-    # 3. SUCCESS
-    print(f"✅ Loker {locker_id} terbuka")
-    print("KIRIM KE ARDUINO: OPEN")
+                log_access(student_id, locker_id, rfid_uid, "failed")
+                continue
 
-    log_access(student_id, locker_id, rfid_uid, "success")
+            # =========================
+            # 3. SUCCESS
+            # =========================
+            print(f"Loker {locker_id} terbuka")
+            ser.write(b"OK\n")
+
+            log_access(student_id, locker_id, rfid_uid, "success")
 
 
 if __name__ == "__main__":

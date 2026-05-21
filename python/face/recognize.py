@@ -4,7 +4,7 @@ import os
 import time
 
 start_time = time.time()
-timeout = 5  # detik
+timeout = 30  # detik
 
 def load_student_encodings(student_id):
     path = f"dataset/{student_id}"
@@ -78,7 +78,6 @@ def recognize_face(student_id):
                 total_match += 1
 
             if total_match >= 1:
-                print("Wajah cocok ✅")
                 cv2.imshow("Face Recognition", frame)
                 cv2.waitKey(1000)
 
@@ -93,5 +92,4 @@ def recognize_face(student_id):
     
     cap.release()
     cv2.destroyAllWindows()
-    print("Wajah tidak cocok ❌")
     return False
